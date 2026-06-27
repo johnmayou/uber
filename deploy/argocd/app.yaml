@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: uber
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/johnmayou/uber
+    targetRevision: main
+    path: deploy/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: uber
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
