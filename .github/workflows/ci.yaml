@@ -104,23 +104,22 @@ jobs:
     concurrency:
       group: deploy
       cancel-in-progress: false
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect.outputs.services) }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Update image tag
+      - name: Update image tags
         env:
           SHA_TAG: sha-${{ github.sha }}
-          SERVICE: ${{ matrix.service }}
+          SERVICES: ${{ needs.detect.outputs.services }}
         run: |
-          sed -i "s|image: ghcr.io/johnmayou/uber/services/${SERVICE}:.*|image: ghcr.io/johnmayou/uber/services/${SERVICE}:${SHA_TAG}|" deploy/manifests/${SERVICE}/deployment.yaml
+          for SERVICE in $(echo "$SERVICES" | jq -r '.[]'); do
+            sed -i "s|image: ghcr.io/johnmayou/uber/services/${SERVICE}:.*|image: ghcr.io/johnmayou/uber/services/${SERVICE}:${SHA_TAG}|" deploy/manifests/${SERVICE}/deployment.yaml
+            git add deploy/manifests/${SERVICE}/deployment.yaml
+          done
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add deploy/manifests/${SERVICE}/deployment.yaml
-          git commit -m "chore: deploy ${SERVICE} ${SHA_TAG}"
+          git commit -m "chore: deploy ${SHA_TAG}"
           git push
