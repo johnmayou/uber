@@ -46,6 +46,7 @@ jobs:
         with:
           version: latest
           install-mode: goinstall
+          args: ./pkg/chassis/... ./services/auth/... ./services/trip/... ./services/user/...
       - name: Install kubeconform
         run: |
           curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
