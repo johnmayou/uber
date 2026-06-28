@@ -1,7 +1,8 @@
 FROM golang:1.26-alpine AS builder
+ARG SERVICE
 WORKDIR /app
 COPY . .
-RUN go build -o server .
+RUN cd services/${SERVICE} && go build -o /app/server ./cmd
 
 FROM alpine:latest
 COPY --from=builder /app/server /server
