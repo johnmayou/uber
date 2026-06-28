@@ -102,7 +102,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.detect.outputs.services != '[]'
     runs-on: ubuntu-latest
     concurrency:
-      group: deploy-${{ matrix.service }}
+      group: deploy
       cancel-in-progress: false
     strategy:
       matrix:
