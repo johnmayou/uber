@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: uber
+  namespace: uber
+  labels:
+    release: prometheus-stack
+spec:
+  selector: {}
+  namespaceSelector:
+    matchNames:
+      - uber
+  endpoints:
+    - port: http
+      path: /metrics
