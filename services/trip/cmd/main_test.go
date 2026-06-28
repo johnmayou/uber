@@ -12,8 +12,8 @@ func TestHandler(t *testing.T) {
 		path string
 		want []string
 	}{
-		{"/", []string{"trip:/", "add(1, 1):2"}},
-		{"/foo", []string{"trip:/foo", "add(1, 1):2"}},
+		{"/", []string{"trip:/", "add(1, 2):3"}},
+		{"/foo", []string{"trip:/foo", "add(1, 2):3"}},
 	}
 
 	for _, tt := range tests {
