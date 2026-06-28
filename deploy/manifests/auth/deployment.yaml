@@ -17,6 +17,6 @@ spec:
         - name: pullsecret-ghcr
       containers:
         - name: auth
-          image: ghcr.io/johnmayou/uber/services/auth:latest
+          image: ghcr.io/johnmayou/uber/services/auth:sha-2098cf0c8b6e685795bb8caac6035ee8b0a6c711
           ports:
             - containerPort: 8080
