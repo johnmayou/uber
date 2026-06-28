@@ -14,7 +14,7 @@ spec:
         app: auth
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: pullsecret-ghcr
       containers:
         - name: auth
           image: ghcr.io/johnmayou/uber/services/auth:latest

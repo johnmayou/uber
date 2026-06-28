@@ -14,7 +14,7 @@ spec:
         app: trip
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: pullsecret-ghcr
       containers:
         - name: trip
           image: ghcr.io/johnmayou/uber/services/trip:latest
