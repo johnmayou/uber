@@ -11,10 +11,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - uber.johnmayou.com
+        - api.uber.johnmayou.com
       secretName: uber-tls
   rules:
-    - host: uber.johnmayou.com
+    - host: api.uber.johnmayou.com
       http:
         paths:
           - path: /auth
