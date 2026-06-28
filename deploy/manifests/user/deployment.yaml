@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  namespace: uber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: user
+          image: ghcr.io/johnmayou/uber/services/user:latest
+          ports:
+            - containerPort: 8080
