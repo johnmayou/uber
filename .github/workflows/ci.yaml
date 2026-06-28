@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "deploy/manifests/**"
   pull_request:
     branches: [main]
 
@@ -93,3 +95,29 @@ jobs:
           TAG: sha-${{ github.sha }}
           SERVICE: ${{ matrix.service }}
         run: docker buildx bake "$SERVICE" --file docker/docker-bake.hcl --push
+
+  deploy:
+    needs: [detect, build]
+    if: github.ref == 'refs/heads/main' && needs.detect.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ matrix.service }}
+      cancel-in-progress: false
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect.outputs.services) }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update image tag
+        env:
+          SHA_TAG: sha-${{ github.sha }}
+          SERVICE: ${{ matrix.service }}
+        run: |
+          sed -i "s|image: ghcr.io/johnmayou/uber/services/${SERVICE}:.*|image: ghcr.io/johnmayou/uber/services/${SERVICE}:${SHA_TAG}|" deploy/manifests/${SERVICE}/deployment.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deploy/manifests/${SERVICE}/deployment.yaml
+          git commit -m "chore: deploy ${SERVICE} ${SHA_TAG}"
+          git push
