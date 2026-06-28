@@ -1,3 +1,9 @@
+lint:
+	@bash scripts/ci-lint
+
+test:
+	@bash scripts/ci-test
+
 .PHONY: deploy-lint
 deploy-lint:
 	@kubeconform -strict \

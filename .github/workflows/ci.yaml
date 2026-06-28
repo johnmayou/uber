@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.matrix.outputs.services }}
+      modules: ${{ steps.matrix.outputs.modules }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -26,14 +27,19 @@ jobs:
             user:
               - 'services/user/**'
               - 'pkg/**'
+            chassis:
+              - 'pkg/**'
       - name: Build matrix
         id: matrix
         run: |
           SERVICES=()
-          [ "${{ steps.filter.outputs.auth }}" = "true" ] && SERVICES+=("auth")
-          [ "${{ steps.filter.outputs.trip }}" = "true" ] && SERVICES+=("trip")
-          [ "${{ steps.filter.outputs.user }}" = "true" ] && SERVICES+=("user")
+          MODULES=()
+          [ "${{ steps.filter.outputs.chassis }}" = "true" ] && MODULES+=("pkg/chassis")
+          [ "${{ steps.filter.outputs.auth }}" = "true" ] && SERVICES+=("auth") && MODULES+=("services/auth")
+          [ "${{ steps.filter.outputs.trip }}" = "true" ] && SERVICES+=("trip") && MODULES+=("services/trip")
+          [ "${{ steps.filter.outputs.user }}" = "true" ] && SERVICES+=("user") && MODULES+=("services/user")
           echo "services=$(jq -c -n '$ARGS.positional' --args "${SERVICES[@]+"${SERVICES[@]}"}")" >> $GITHUB_OUTPUT
+          echo "modules=$(jq -c -n '$ARGS.positional' --args "${MODULES[@]+"${MODULES[@]}"}")" >> $GITHUB_OUTPUT
 
   lint:
     runs-on: ubuntu-latest
@@ -42,16 +48,27 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.work
-      - uses: golangci/golangci-lint-action@v8
-        with:
-          version: latest
-          install-mode: goinstall
-          args: ./pkg/chassis/... ./services/auth/... ./services/trip/... ./services/user/...
+      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - run: bash scripts/ci-lint
       - name: Install kubeconform
         run: |
           curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
             | tar xz -C /usr/local/bin kubeconform
       - run: make deploy-lint
+
+  test:
+    needs: detect
+    if: needs.detect.outputs.modules != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.detect.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+      - run: bash scripts/ci-test ${{ matrix.module }}
 
   build:
     needs: detect

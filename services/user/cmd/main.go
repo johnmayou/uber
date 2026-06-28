@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -9,11 +10,13 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "user:"+r.URL.Path)
-	fmt.Fprintln(w, "add(1, 1):"+strconv.Itoa(chassis.Add(1, 1)))
+	_, _ = fmt.Fprintln(w, "user:"+r.URL.Path)
+	_, _ = fmt.Fprintln(w, "add(1, 1):"+strconv.Itoa(chassis.Add(1, 1)))
 }
 
 func main() {
 	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatalf("failed to run server: %v", err)
+	}
 }
