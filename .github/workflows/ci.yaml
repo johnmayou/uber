@@ -111,6 +111,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Update image tag
         env:
           SHA_TAG: sha-${{ github.sha }}
