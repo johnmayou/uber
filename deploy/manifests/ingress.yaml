@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uber
+  namespace: uber
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - hosts:
+        - api.uber.johnmayou.com
+      secretName: uber-tls
+  rules:
+    - host: api.uber.johnmayou.com
+      http:
+        paths:
+          - path: /hello-world
+            pathType: Prefix
+            backend:
+              service:
+                name: hello-world
+                port:
+                  number: 8080
