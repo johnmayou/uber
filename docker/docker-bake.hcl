@@ -2,8 +2,8 @@ variable "REGISTRY" { default = "ghcr.io/johnmayou/uber" }
 variable "TAG" { }
 
 target "base" {
-  dockerfile = "Dockerfile"
-  context    = "../"
+  dockerfile = "docker/Dockerfile"
+  context    = "."
 }
 
 target "auth" {

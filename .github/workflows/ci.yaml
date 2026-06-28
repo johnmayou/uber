@@ -92,5 +92,4 @@ jobs:
         env:
           TAG: sha-${{ github.sha }}
           SERVICE: ${{ matrix.service }}
-        run: docker buildx bake "$SERVICE" --push
-        working-directory: docker
+        run: docker buildx bake "$SERVICE" --file docker/docker-bake.hcl --push
