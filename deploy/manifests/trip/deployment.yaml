@@ -17,6 +17,6 @@ spec:
         - name: pullsecret-ghcr
       containers:
         - name: trip
-          image: ghcr.io/johnmayou/uber/services/trip:sha-2a9784a304626b25ec2fb455d19074fcd24aaaa8
+          image: ghcr.io/johnmayou/uber/services/trip:sha-f26d3aeafda0bed119281c58f436d0ef0b64ea77
           ports:
             - containerPort: 8080
