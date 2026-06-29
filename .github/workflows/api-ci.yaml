@@ -1,14 +1,14 @@
-name: API CI
+name: Api CI
 
 on:
   push:
     branches: [main]
     paths:
-      - 'api/**'
+      - "api/**"
   pull_request:
     branches: [main]
     paths:
-      - 'api/**'
+      - "api/**"
 
 jobs:
   ci:
