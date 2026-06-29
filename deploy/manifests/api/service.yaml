@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth
+  name: api
   namespace: uber
 spec:
   selector:
-    app: auth
+    app: api
   ports:
     - name: http
       port: 8080

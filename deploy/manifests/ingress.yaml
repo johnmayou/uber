@@ -17,25 +17,11 @@ spec:
     - host: api.uber.johnmayou.com
       http:
         paths:
-          - path: /auth
+          - path: /
             pathType: Prefix
             backend:
               service:
-                name: auth
-                port:
-                  number: 8080
-          - path: /trip
-            pathType: Prefix
-            backend:
-              service:
-                name: trip
-                port:
-                  number: 8080
-          - path: /user
-            pathType: Prefix
-            backend:
-              service:
-                name: user
+                name: api
                 port:
                   number: 8080
 ---

@@ -2,11 +2,4 @@
 
 set -euo pipefail
 
-# Args: module paths (e.g. pkg/chassis services/auth). No args = all.
-if [ $# -eq 0 ]; then
-  set -- pkg/chassis services/auth services/trip services/user
-fi
-
-for mod in "$@"; do
-  go test -race -v "./$mod/..."
-done
+cd api && go test -race -v ./...

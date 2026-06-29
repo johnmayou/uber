@@ -2,14 +2,4 @@
 
 set -euo pipefail
 
-# Args: module paths (e.g. services/auth pkg/chassis). No args = all modules.
-if [ $# -eq 0 ]; then
-  set -- pkg/chassis services/auth services/trip services/user
-fi
-
-args=()
-for mod in "$@"; do
-  args+=("./$mod/...")
-done
-
-golangci-lint run "${args[@]}"
+cd api && golangci-lint run ./...
