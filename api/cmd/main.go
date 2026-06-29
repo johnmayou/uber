@@ -5,10 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
-	"github.com/johnmayou/uber/pkg/chassis"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -16,18 +14,17 @@ import (
 
 var (
 	rootHits = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "auth_root_hits_total",
+		Name: "api_root_hits_total",
 	})
 	ticks = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "auth_ticks_total",
+		Name: "api_ticks_total",
 	})
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	rootHits.Inc()
-	slog.Info("request", "service", "auth", "path", r.URL.Path)
-	_, _ = fmt.Fprintln(w, "auth:"+r.URL.Path)
-	_, _ = fmt.Fprintln(w, "add(1, 2):"+strconv.Itoa(chassis.Add(1, 2)))
+	slog.Info("request", "service", "api", "path", r.URL.Path)
+	_, _ = fmt.Fprintln(w, "api:"+r.URL.Path)
 }
 
 func main() {
@@ -45,7 +42,7 @@ func main() {
 	mux.HandleFunc("/", handler)
 	mux.Handle("/metrics", promhttp.Handler())
 
-	slog.Info("starting", "service", "auth", "addr", ":8080")
+	slog.Info("starting", "service", "api", "addr", ":8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		slog.Error("server failed", "err", err)
 	}

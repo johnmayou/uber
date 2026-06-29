@@ -1,8 +1,0 @@
-go 1.26.3
-
-use (
-	./pkg/chassis
-	./services/auth
-	./services/trip
-	./services/user
-)

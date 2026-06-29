@@ -1,8 +1,12 @@
+.PHONY: lint
 lint:
-	@bash scripts/ci-lint
+	make -C api lint
+	make -C web lint
 
+.PHONY: test
 test:
-	@bash scripts/ci-test
+	make -C api test
+	make -C web test
 
 .PHONY: deploy-lint
 deploy-lint:
