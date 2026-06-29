@@ -17,7 +17,7 @@ spec:
         - name: pullsecret-ghcr
       containers:
         - name: api
-          image: ghcr.io/johnmayou/uber/api:sha-2a9784a304626b25ec2fb455d19074fcd24aaaa8
+          image: ghcr.io/johnmayou/uber/api:sha-7efa38794699fc9186228343429319950082c83c
           resources:
             requests:
               cpu: "100m"
