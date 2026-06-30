@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("osm/us-midwest-260629.osm.pbf")
+	file, err := os.Open("osm/minnesota-260629.osm.pbf")
 	if err != nil {
 		log.Fatalf("opening osm file: %v", err)
 	}
