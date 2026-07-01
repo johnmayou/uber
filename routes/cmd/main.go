@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,13 +18,19 @@ import (
 	"github.com/uber/h3-go/v4"
 )
 
+type Node struct {
+	Id    uint32
+	Coord Coord
+}
+
 type Edge struct {
 	To     uint32
 	Weight uint32
 }
 
 type Graph struct {
-	adj map[uint32][]Edge // adj[node] = that node's outgoing edges
+	adj     map[uint32][]Edge // adj[node] = that node's outgoing edges
+	nodeMap map[uint32]Node
 }
 
 func (g *Graph) ForEachEdge(node uint32, fn func(e Edge)) {
@@ -49,12 +56,20 @@ func buildGraph(in io.Reader) *Graph {
 	}
 
 	adj := make(map[uint32][]Edge)
+	nodeMap := make(map[uint32]Node)
 
 	for scanner.Scan() {
 		object := scanner.Object()
 		switch obj := object.(type) {
 		case *osm.Node:
 			src := uint32(obj.ObjectID())
+			nodeMap[src] = Node{
+				Id: src,
+				Coord: Coord{
+					lat: obj.Lat,
+					lng: obj.Lon,
+				},
+			}
 			if _, ok := adj[src]; !ok {
 				adj[src] = []Edge{}
 			}
@@ -73,7 +88,84 @@ func buildGraph(in io.Reader) *Graph {
 		log.Fatalf("scanning: %v", err)
 	}
 
-	return &Graph{adj: adj}
+	return &Graph{adj: adj, nodeMap: nodeMap}
+}
+
+type CellIndex struct {
+	index map[h3.Cell][]uint32
+}
+
+const cellIndexResolution = 8
+
+func buildCellIndex(nodes map[uint32]Node) (*CellIndex, error) {
+	ci := &CellIndex{index: make(map[h3.Cell][]uint32)}
+
+	for _, node := range nodes {
+		cell, err := h3.LatLngToCell(h3.LatLng{Lat: node.Coord.lat, Lng: node.Coord.lng}, cellIndexResolution)
+		if err != nil {
+			return nil, fmt.Errorf("convert lat lng to cell: %w", err)
+		}
+		ci.index[cell] = append(ci.index[cell], node.Id)
+	}
+
+	return ci, nil
+}
+
+func (ci *CellIndex) getClosestNode(coord Coord, nodeMap map[uint32]Node) (Node, error) {
+	nodeIds, err := ci.getClosestNodeIds(coord)
+	if err != nil {
+		return Node{}, fmt.Errorf("get closest nodes: %w", err)
+	}
+
+	calcDist := func(candidate Coord) float64 {
+		return math.Pow(candidate.lat-coord.lat, 2) + math.Pow(candidate.lng-coord.lng, 2)
+	}
+
+	firstNode, ok := nodeMap[nodeIds[0]]
+	if !ok {
+		return Node{}, fmt.Errorf("first node id (%d) not found in map", nodeIds[0])
+	}
+	closest := firstNode
+	closestDist := calcDist(firstNode.Coord)
+
+	for _, nodeId := range nodeIds[1:] {
+		node, ok := nodeMap[nodeId]
+		if !ok {
+			return Node{}, fmt.Errorf("node id (%d) not found in map", nodeId)
+		}
+
+		if dist := calcDist(node.Coord); dist < closestDist {
+			closest = node
+			closestDist = dist
+		}
+	}
+
+	return closest, nil
+}
+
+func (ci *CellIndex) getClosestNodeIds(coord Coord) ([]uint32, error) {
+	cell, err := h3.LatLngToCell(h3.LatLng{Lat: coord.lat, Lng: coord.lng}, cellIndexResolution)
+	if err != nil {
+		log.Fatalf("src convert to cell: %v", err)
+	}
+
+	cells, err := h3.GridDisk(cell, 1)
+	if err != nil {
+		return nil, fmt.Errorf("requesting neighboring cells for %q: %w", cell, err)
+	}
+
+	var out []uint32
+	for _, c := range cells {
+		if nodeIds, ok := ci.index[c]; ok {
+			out = append(out, nodeIds...)
+		}
+	}
+
+	if len(out) == 0 {
+		return nil, fmt.Errorf("node not found near cell %q", cell)
+	}
+
+	return out, nil
 }
 
 type Coord struct {
@@ -200,19 +292,23 @@ func main() {
 	fmt.Printf("coord for src: %+v\n", src)
 	fmt.Printf("coord for dst: %+v\n", dst)
 
-	srcCell, err := h3.LatLngToCell(h3.NewLatLng(src.lat, src.lng), 1)
+	graph := buildGraph(file)
+	fmt.Printf("node count: %d\n", len(graph.adj))
+
+	index, err := buildCellIndex(graph.nodeMap)
 	if err != nil {
-		log.Fatalf("src convert to cell: %v", err)
-	}
-	dstCell, err := h3.LatLngToCell(h3.NewLatLng(dst.lat, src.lng), 1)
-	if err != nil {
-		log.Fatalf("dst convert to cell: %v", err)
+		log.Fatalf("build cell index: %v", err)
 	}
 
-	fmt.Printf("cell for src: %s", srcCell)
-	fmt.Printf("cell for dst: %s", dstCell)
+	srcClosest, err := index.getClosestNode(src, graph.nodeMap)
+	if err != nil {
+		log.Fatalf("closest node to src: %v", err)
+	}
+	dstClosest, err := index.getClosestNode(dst, graph.nodeMap)
+	if err != nil {
+		log.Fatalf("closest node to dst: %v", err)
+	}
 
-	// graph := buildGraph(file)
-	// _ = graph
-	// fmt.Printf("node count: %d\n", len(graph.adj))
+	fmt.Printf("closest node to src: %+v\n", srcClosest)
+	fmt.Printf("closest node to dst: %+v\n", dstClosest)
 }
