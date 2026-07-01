@@ -14,6 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/paulmach/osm"
 	"github.com/paulmach/osm/osmpbf"
+	"github.com/uber/h3-go/v4"
 )
 
 type Edge struct {
@@ -76,8 +77,8 @@ func buildGraph(in io.Reader) *Graph {
 }
 
 type Coord struct {
-	lat float32
-	lng float32
+	lat float64
+	lng float64
 }
 
 func fetchCoord(ctx context.Context, client http.Client, query string) (Coord, error) {
@@ -116,8 +117,8 @@ func fetchCoord(ctx context.Context, client http.Client, query string) (Coord, e
 		} `json:"components"`
 		Confidence int `json:"confidence"`
 		Geometry   struct {
-			Lat float32 `json:"lat"`
-			Lng float32 `json:"lng"`
+			Lat float64 `json:"lat"`
+			Lng float64 `json:"lng"`
 		} `json:"geometry"`
 	}
 
@@ -199,7 +200,19 @@ func main() {
 	fmt.Printf("coord for src: %+v\n", src)
 	fmt.Printf("coord for dst: %+v\n", dst)
 
-	graph := buildGraph(file)
-	_ = graph
-	fmt.Printf("node count: %d\n", len(graph.adj))
+	srcCell, err := h3.LatLngToCell(h3.NewLatLng(src.lat, src.lng), 1)
+	if err != nil {
+		log.Fatalf("src convert to cell: %v", err)
+	}
+	dstCell, err := h3.LatLngToCell(h3.NewLatLng(dst.lat, src.lng), 1)
+	if err != nil {
+		log.Fatalf("dst convert to cell: %v", err)
+	}
+
+	fmt.Printf("cell for src: %s", srcCell)
+	fmt.Printf("cell for dst: %s", dstCell)
+
+	// graph := buildGraph(file)
+	// _ = graph
+	// fmt.Printf("node count: %d\n", len(graph.adj))
 }
