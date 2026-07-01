@@ -60,7 +60,7 @@ func buildGraph(in io.Reader) *Graph {
 		case *osm.Way:
 			for i := 0; i < len(obj.Nodes)-1; i++ {
 				src := uint32(obj.Nodes[i].ID)
-				dst := uint32(obj.Nodes[i].ID)
+				dst := uint32(obj.Nodes[i+1].ID)
 				adj[src] = append(adj[src], Edge{To: dst})
 			}
 		default:
@@ -196,7 +196,8 @@ func main() {
 		dst = Coord{lat: 44.97422, lng: -93.26758}
 	}
 
-	// graph := buildGraph(file)
+	graph := buildGraph(file)
+	_ = graph
 
 	fmt.Printf("coord for src: %+v\n", src)
 	fmt.Printf("coord for dst: %+v\n", dst)
