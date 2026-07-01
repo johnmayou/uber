@@ -196,9 +196,10 @@ func main() {
 		dst = Coord{lat: 44.97422, lng: -93.26758}
 	}
 
-	graph := buildGraph(file)
-	_ = graph
-
 	fmt.Printf("coord for src: %+v\n", src)
 	fmt.Printf("coord for dst: %+v\n", dst)
+
+	graph := buildGraph(file)
+	_ = graph
+	fmt.Printf("node count: %d\n", len(graph.adj))
 }
