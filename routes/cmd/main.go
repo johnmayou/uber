@@ -259,7 +259,7 @@ func fetchCoord(ctx context.Context, client http.Client, query string) (Coord, e
 func main() {
 	godotenv.Load()
 
-	file, err := os.Open("osm/minnesota-260629.osm.pbf")
+	file, err := os.Open("osm/minneapolis-260629.osm.pbf")
 	if err != nil {
 		log.Fatalf("opening osm file: %v", err)
 	}
