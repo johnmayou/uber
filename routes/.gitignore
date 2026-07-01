@@ -23,3 +23,6 @@ profile.cov
 # Go workspace file
 go.work
 go.work.sum
+
+# OSM (Open Street Map)
+/osm/
